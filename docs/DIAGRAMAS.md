@@ -80,8 +80,12 @@ erDiagram
     RESTAURANTES {
         INTEGER id PK
         TEXT nome
+        TEXT morada
         TEXT cidade
+        TEXT preco
+        TEXT avaliacao
         TEXT cozinhas
+        TEXT imagem_url
     }
 
     RESERVAS {
