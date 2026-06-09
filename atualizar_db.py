@@ -31,7 +31,33 @@ def adicionar_tabelas_autenticacao():
 
     conn.commit()
     conn.close()
-    print("Estrutura da base de dados atualizada com sucesso!")
+    print("Tabelas de autenticação e reservas verificadas/criadas com sucesso!")
+
+def atualizar_tabela_restaurantes():
+    conn = sqlite3.connect('app_reservas.db')
+    cursor = conn.cursor()
+
+    # Novas colunas em Português de Portugal para validação de regras de negócio
+    novas_colunas = [
+        ("tem_almoco", "INTEGER DEFAULT 0"),
+        ("tem_servico_continuo", "INTEGER DEFAULT 0"),
+        ("fecha_tarde", "INTEGER DEFAULT 0"),
+        ("aberto_domingo", "INTEGER DEFAULT 0")
+    ]
+
+    for coluna, tipo in novas_colunas:
+        try:
+            # Tenta adicionar a coluna à tabela existente
+            cursor.execute(f"ALTER TABLE restaurantes ADD COLUMN {coluna} {tipo}")
+            print(f"Coluna '{coluna}' adicionada com sucesso à tabela 'restaurantes'.")
+        except sqlite3.OperationalError:
+            # O SQLite lança esta exceção se a coluna já existir, o que permite ignorar o erro com segurança
+            print(f"A coluna '{coluna}' já existe na tabela 'restaurantes'.")
+
+    conn.commit()
+    conn.close()
+    print("Migração da tabela de restaurantes concluída!")
 
 if __name__ == "__main__":
     adicionar_tabelas_autenticacao()
+    atualizar_tabela_restaurantes()
