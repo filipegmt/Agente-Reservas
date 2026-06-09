@@ -1,50 +1,86 @@
 // pages/auth/Register.jsx — Página de criação de conta
 
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Sparkles,
+  CheckCircle2,
+} from "lucide-react";
 
 const FUNCIONALIDADES = [
-  'Reservas automáticas via IA',
-  'Histórico organizado e pesquisável',
-  'Notificações em tempo real',
+  "Reservas automáticas via IA",
+  "Histórico organizado e pesquisável",
+  "Notificações em tempo real",
 ];
 
 export default function Register() {
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmarPassword, setConfirmarPassword] = useState('');
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmarPassword, setConfirmarPassword] = useState("");
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [emCriacao, setEmCriacao] = useState(false);
-  const [erro, setErro] = useState('');
+  const [erro, setErro] = useState("");
   const navegar = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErro('');
+    setErro("");
 
     if (password.length < 8) {
-      setErro('A palavra-passe deve ter pelo menos 8 caracteres.');
+      setErro("A palavra-passe deve ter pelo menos 8 caracteres.");
       return;
     }
     if (password !== confirmarPassword) {
-      setErro('As palavras-passe não coincidem.');
+      setErro("As palavras-passe não coincidem.");
       return;
     }
 
     setEmCriacao(true);
-    await new Promise((r) => setTimeout(r, 900));
-    localStorage.setItem('hotelai_auth', 'true');
-    navegar('/chat');
+
+    try {
+      const resposta = await fetch(
+        "http://localhost:5678/webhook-test/registo",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ nome, email, password }),
+        },
+      );
+
+      const dados = await resposta.json();
+
+      if (dados.sucesso) {
+        // Registo funcionou! Guardamos as credenciais e o ID para as reservas funcionarem
+        localStorage.setItem("hotelai_auth", "true");
+        localStorage.setItem("user_id", dados.utilizador.id);
+        localStorage.setItem("user_nome", dados.utilizador.nome);
+
+        // Passadeira vermelha para a aplicação
+        navegar("/chat");
+      } else {
+        // Se a base de dados rejeitar (ex: email já existe)
+        setErro(dados.mensagem || "Erro ao criar conta. Tenta novamente.");
+        setEmCriacao(false);
+      }
+    } catch (err) {
+      setErro("Erro de ligação ao servidor central. Verifica a tua ligação.");
+      setEmCriacao(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 flex">
-
       {/* ——— PAINEL ESQUERDO — Decorativo ——— */}
       <div className="hidden lg:flex lg:w-[48%] bg-zinc-900 relative overflow-hidden p-12 flex-col justify-between border-r border-zinc-800">
-
         {/* Efeitos de fundo */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-32 -right-32 w-[480px] h-[480px] bg-violet-600/8 rounded-full blur-3xl" />
@@ -57,17 +93,22 @@ export default function Register() {
             <div className="w-9 h-9 bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/25">
               <Sparkles className="w-[18px] h-[18px] text-white" />
             </div>
-            <span className="text-zinc-100 font-semibold text-lg tracking-tight">HotelAI</span>
+            <span className="text-zinc-100 font-semibold text-lg tracking-tight">
+              HotelAI
+            </span>
           </div>
         </div>
 
         {/* Título + Lista de funcionalidades */}
         <div className="relative z-10">
           <h2 className="text-[2.2rem] font-light text-zinc-100 leading-tight mb-4 tracking-tight">
-            Inteligência<br />que age por ti.
+            Inteligência
+            <br />
+            que age por ti.
           </h2>
           <p className="text-zinc-500 text-sm max-w-xs leading-relaxed mb-8">
-            Um agente que encontra, compara e reserva os melhores restaurantes e hotéis — sem esforço da tua parte.
+            Um agente que encontra, compara e reserva os melhores restaurantes e
+            hotéis — sem esforço da tua parte.
           </p>
 
           <div className="space-y-3">
@@ -82,7 +123,8 @@ export default function Register() {
           {/* Depoimento */}
           <div className="mt-10 bg-zinc-800/50 border border-zinc-700/40 rounded-2xl p-4">
             <p className="text-zinc-400 text-sm italic leading-relaxed">
-              "Poupei horas de pesquisa. O agente encontrou o restaurante perfeito em segundos."
+              "Poupei horas de pesquisa. O agente encontrou o restaurante
+              perfeito em segundos."
             </p>
             <div className="flex items-center gap-2 mt-3">
               <div className="w-6 h-6 rounded-full bg-indigo-500/30 flex items-center justify-center">
@@ -97,7 +139,6 @@ export default function Register() {
       {/* ——— PAINEL DIREITO — Formulário ——— */}
       <div className="flex-1 flex items-center justify-center px-8 py-12 overflow-y-auto">
         <div className="w-full max-w-[380px] my-auto">
-
           {/* Logo visível apenas em mobile */}
           <div className="flex items-center gap-2 mb-10 lg:hidden">
             <div className="w-8 h-8 bg-indigo-500 rounded-xl flex items-center justify-center">
@@ -110,7 +151,9 @@ export default function Register() {
             <h1 className="text-[1.75rem] font-bold text-zinc-50 tracking-tight leading-tight">
               Criar conta
             </h1>
-            <p className="text-zinc-500 mt-2 text-sm">Junta-te ao HotelAI gratuitamente.</p>
+            <p className="text-zinc-500 mt-2 text-sm">
+              Junta-te ao HotelAI gratuitamente.
+            </p>
           </div>
 
           {/* Mensagem de erro */}
@@ -121,7 +164,6 @@ export default function Register() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-
             {/* Campo Nome */}
             <div>
               <label className="block text-xs font-medium text-zinc-400 mb-1.5">
@@ -166,7 +208,7 @@ export default function Register() {
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
                 <input
-                  type={mostrarPassword ? 'text' : 'password'}
+                  type={mostrarPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Mínimo 8 caracteres"
@@ -207,10 +249,15 @@ export default function Register() {
 
             {/* Termos */}
             <p className="text-xs text-zinc-600 pt-1">
-              Ao criar conta, aceitas os{' '}
-              <a href="#" className="text-indigo-400 hover:underline">Termos de Serviço</a>
-              {' '}e a{' '}
-              <a href="#" className="text-indigo-400 hover:underline">Política de Privacidade</a>.
+              Ao criar conta, aceitas os{" "}
+              <a href="#" className="text-indigo-400 hover:underline">
+                Termos de Serviço
+              </a>{" "}
+              e a{" "}
+              <a href="#" className="text-indigo-400 hover:underline">
+                Política de Privacidade
+              </a>
+              .
             </p>
 
             {/* Botão de submissão */}
@@ -222,7 +269,9 @@ export default function Register() {
               {emCriacao ? (
                 <>
                   <span className="w-4 h-4 border-2 border-zinc-600 border-t-zinc-400 rounded-full animate-spin" />
-                  <span className="text-zinc-400 font-normal">Em criação de conta…</span>
+                  <span className="text-zinc-400 font-normal">
+                    Em criação de conta…
+                  </span>
                 </>
               ) : (
                 <>
@@ -235,7 +284,7 @@ export default function Register() {
 
           {/* Link para login */}
           <p className="text-center text-sm text-zinc-600 mt-8">
-            Já tens conta?{' '}
+            Já tens conta?{" "}
             <Link
               to="/login"
               className="text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
