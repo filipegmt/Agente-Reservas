@@ -60,12 +60,13 @@ export default function Register() {
 
       if (dados.sucesso) {
         // Registo funcionou! Guardamos as credenciais e o ID para as reservas funcionarem
-        localStorage.setItem("hotelai_auth", "true");
+        localStorage.setItem("reservaai_auth", "true");
         localStorage.setItem("user_id", dados.utilizador.id);
         localStorage.setItem("user_nome", dados.utilizador.nome);
+        localStorage.setItem("user_email", dados.utilizador.email);
 
         // Passadeira vermelha para a aplicação
-        navegar("/chat");
+        window.location.href = "/chat";
       } else {
         // Se a base de dados rejeitar (ex: email já existe)
         setErro(dados.mensagem || "Erro ao criar conta. Tenta novamente.");
@@ -94,7 +95,7 @@ export default function Register() {
               <Sparkles className="w-[18px] h-[18px] text-white" />
             </div>
             <span className="text-zinc-100 font-semibold text-lg tracking-tight">
-              HotelAI
+              ReservaAI
             </span>
           </div>
         </div>
@@ -144,7 +145,7 @@ export default function Register() {
             <div className="w-8 h-8 bg-indigo-500 rounded-xl flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <span className="text-zinc-100 font-semibold">HotelAI</span>
+            <span className="text-zinc-100 font-semibold">ReservaAI</span>
           </div>
 
           <div className="mb-8">
@@ -152,7 +153,7 @@ export default function Register() {
               Criar conta
             </h1>
             <p className="text-zinc-500 mt-2 text-sm">
-              Junta-te ao HotelAI gratuitamente.
+              Junta-te ao ReservaAI gratuitamente.
             </p>
           </div>
 

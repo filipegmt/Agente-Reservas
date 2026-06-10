@@ -1,20 +1,31 @@
 // pages/Definicoes.jsx — Ecrã de definições e preferências
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
-  Palette, Bell, Shield, LogOut, Trash2, ChevronRight,
-  User, Lock, Globe,
-} from 'lucide-react';
+  Palette,
+  Bell,
+  Shield,
+  LogOut,
+  Trash2,
+  ChevronRight,
+  User,
+  Lock,
+  Globe,
+} from "lucide-react";
+
+const nomeUtilizador = localStorage.getItem("user_nome") || "Utilizador";
+const emailUtilizador =
+  localStorage.getItem("user_email") || "Email não definido";
 
 // ─── Configurações de tema e cores ───────────────────────────────────────────
-const TEMAS = ['Escuro', 'Claro', 'Sistema'];
+const TEMAS = ["Escuro", "Claro", "Sistema"];
 const CORES_DESTAQUE = [
-  { nome: 'Índigo',   classe: 'bg-indigo-500',  anel: 'ring-indigo-500'  },
-  { nome: 'Violeta',  classe: 'bg-violet-500',  anel: 'ring-violet-500'  },
-  { nome: 'Céu',      classe: 'bg-sky-500',     anel: 'ring-sky-500'     },
-  { nome: 'Esmeralda',classe: 'bg-emerald-500', anel: 'ring-emerald-500' },
-  { nome: 'Âmbar',    classe: 'bg-amber-500',   anel: 'ring-amber-500'   },
+  { nome: "Índigo", classe: "bg-indigo-500", anel: "ring-indigo-500" },
+  { nome: "Violeta", classe: "bg-violet-500", anel: "ring-violet-500" },
+  { nome: "Céu", classe: "bg-sky-500", anel: "ring-sky-500" },
+  { nome: "Esmeralda", classe: "bg-emerald-500", anel: "ring-emerald-500" },
+  { nome: "Âmbar", classe: "bg-amber-500", anel: "ring-amber-500" },
 ];
 
 // ─── Sub-componente: Secção agrupada ─────────────────────────────────────────
@@ -23,20 +34,22 @@ function SeccaoDefinicoes({ icone, titulo, children, perigo = false }) {
     <div
       className={`rounded-2xl border overflow-hidden mb-3 ${
         perigo
-          ? 'border-red-500/15 bg-red-500/5'
-          : 'border-zinc-800 bg-zinc-900'
+          ? "border-red-500/15 bg-red-500/5"
+          : "border-zinc-800 bg-zinc-900"
       }`}
     >
       {/* Cabeçalho da secção */}
       <div
         className={`px-4 py-3 border-b flex items-center gap-2 ${
-          perigo ? 'border-red-500/15' : 'border-zinc-800'
+          perigo ? "border-red-500/15" : "border-zinc-800"
         }`}
       >
-        <span className={perigo ? 'text-red-400' : 'text-zinc-500'}>{icone}</span>
+        <span className={perigo ? "text-red-400" : "text-zinc-500"}>
+          {icone}
+        </span>
         <span
           className={`text-xs font-semibold uppercase tracking-widest ${
-            perigo ? 'text-red-400' : 'text-zinc-500'
+            perigo ? "text-red-400" : "text-zinc-500"
           }`}
         >
           {titulo}
@@ -52,19 +65,25 @@ function ItemToggle({ rotulo, descricao, ativo, aoAlterar }) {
   return (
     <div className="flex items-center justify-between gap-4 py-1">
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-zinc-200 font-medium leading-tight">{rotulo}</p>
-        {descricao && <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">{descricao}</p>}
+        <p className="text-sm text-zinc-200 font-medium leading-tight">
+          {rotulo}
+        </p>
+        {descricao && (
+          <p className="text-xs text-zinc-500 mt-0.5 leading-relaxed">
+            {descricao}
+          </p>
+        )}
       </div>
       <button
         onClick={() => aoAlterar(!ativo)}
-        aria-label={`${ativo ? 'Desativar' : 'Ativar'} ${rotulo}`}
+        aria-label={`${ativo ? "Desativar" : "Ativar"} ${rotulo}`}
         className={`relative w-10 h-5.5 h-[22px] rounded-full transition-colors duration-200 flex-shrink-0 ${
-          ativo ? 'bg-stone-300' : 'bg-zinc-700'
+          ativo ? "bg-stone-300" : "bg-zinc-700"
         }`}
       >
         <span
           className={`absolute top-[3px] left-[3px] w-4 h-4 rounded-full bg-zinc-900 shadow-sm transition-transform duration-200 ${
-            ativo ? 'translate-x-[18px]' : 'translate-x-0'
+            ativo ? "translate-x-[18px]" : "translate-x-0"
           }`}
         />
       </button>
@@ -80,8 +99,12 @@ function ItemNavegacao({ icone: Icone, rotulo, descricao }) {
         <Icone className="w-4 h-4 text-zinc-400" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-zinc-200 font-medium leading-tight">{rotulo}</p>
-        {descricao && <p className="text-xs text-zinc-500 mt-0.5">{descricao}</p>}
+        <p className="text-sm text-zinc-200 font-medium leading-tight">
+          {rotulo}
+        </p>
+        {descricao && (
+          <p className="text-xs text-zinc-500 mt-0.5">{descricao}</p>
+        )}
       </div>
       <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-zinc-400 transition-colors flex-shrink-0" />
     </button>
@@ -90,27 +113,30 @@ function ItemNavegacao({ icone: Icone, rotulo, descricao }) {
 
 // ─── Componente principal: Definições ────────────────────────────────────────
 export default function Definicoes() {
-  const [temaActivo, setTemaActivo]       = useState('Escuro');
-  const [corActiva, setCorActiva]         = useState('Índigo');
-  const [notifPush, setNotifPush]         = useState(true);
-  const [notifEmail, setNotifEmail]       = useState(false);
+  const [temaActivo, setTemaActivo] = useState("Escuro");
+  const [corActiva, setCorActiva] = useState("Índigo");
+  const [notifPush, setNotifPush] = useState(true);
+  const [notifEmail, setNotifEmail] = useState(false);
   const [notifLembrete, setNotifLembrete] = useState(true);
   const [confirmarElim, setConfirmarElim] = useState(false);
   const navegar = useNavigate();
 
   const terminarSessao = () => {
-    localStorage.removeItem('hotelai_auth');
-    navegar('/login');
+    localStorage.removeItem("reservaai_auth");
+    navegar("/login");
   };
 
   return (
     <div className="h-full overflow-y-auto px-6 py-6">
       <div className="max-w-md mx-auto">
-
         {/* ——— Cabeçalho ——— */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-zinc-50 tracking-tight">Definições</h1>
-          <p className="text-sm text-zinc-500 mt-1">Gere a tua conta e preferências.</p>
+          <h1 className="text-2xl font-bold text-zinc-50 tracking-tight">
+            Definições
+          </h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            Gere a tua conta e preferências.
+          </p>
         </div>
 
         {/* ——— Card de Perfil ——— */}
@@ -122,8 +148,12 @@ export default function Definicoes() {
 
           {/* Dados */}
           <div className="flex-1 min-w-0">
-            <p className="text-zinc-100 font-semibold leading-tight">Filipe Tavares</p>
-            <p className="text-zinc-500 text-sm truncate mt-0.5">filipe@exemplo.pt</p>
+            <p className="text-zinc-100 font-semibold leading-tight">
+              {nomeUtilizador}
+            </p>
+            <p className="text-zinc-500 text-sm truncate mt-0.5">
+              {emailUtilizador}
+            </p>
             <span className="inline-block text-xs text-zinc-600 bg-zinc-800 px-2 py-0.5 rounded-full mt-1.5 border border-zinc-700/50">
               Plano gratuito
             </span>
@@ -157,9 +187,11 @@ export default function Definicoes() {
         </SeccaoDefinicoes>
 
         {/* ——— Aparência ——— */}
-        <SeccaoDefinicoes titulo="Aparência" icone={<Palette className="w-4 h-4" />}>
+        <SeccaoDefinicoes
+          titulo="Aparência"
+          icone={<Palette className="w-4 h-4" />}
+        >
           <div className="px-4 py-4 space-y-5">
-
             {/* Selector de tema */}
             <div>
               <p className="text-xs text-zinc-500 mb-2 font-medium">Tema</p>
@@ -170,8 +202,8 @@ export default function Definicoes() {
                     onClick={() => setTemaActivo(tema)}
                     className={`flex-1 py-2 text-xs rounded-xl border transition-all font-medium ${
                       temaActivo === tema
-                        ? 'bg-stone-200 text-zinc-900 border-stone-200 shadow-sm'
-                        : 'bg-transparent text-zinc-500 border-zinc-700 hover:border-zinc-500 hover:text-zinc-300'
+                        ? "bg-stone-200 text-zinc-900 border-stone-200 shadow-sm"
+                        : "bg-transparent text-zinc-500 border-zinc-700 hover:border-zinc-500 hover:text-zinc-300"
                     }`}
                   >
                     {tema}
@@ -182,7 +214,9 @@ export default function Definicoes() {
 
             {/* Selector de cor de destaque */}
             <div>
-              <p className="text-xs text-zinc-500 mb-2.5 font-medium">Cor de destaque</p>
+              <p className="text-xs text-zinc-500 mb-2.5 font-medium">
+                Cor de destaque
+              </p>
               <div className="flex gap-2.5">
                 {CORES_DESTAQUE.map(({ nome, classe, anel }) => (
                   <button
@@ -192,7 +226,7 @@ export default function Definicoes() {
                     className={`w-7 h-7 rounded-full ${classe} transition-all hover:scale-110 ${
                       corActiva === nome
                         ? `ring-2 ring-offset-2 ring-offset-zinc-900 ${anel}`
-                        : ''
+                        : ""
                     }`}
                   />
                 ))}
@@ -202,7 +236,10 @@ export default function Definicoes() {
         </SeccaoDefinicoes>
 
         {/* ——— Notificações ——— */}
-        <SeccaoDefinicoes titulo="Notificações" icone={<Bell className="w-4 h-4" />}>
+        <SeccaoDefinicoes
+          titulo="Notificações"
+          icone={<Bell className="w-4 h-4" />}
+        >
           <div className="px-4 py-3 space-y-3">
             <ItemToggle
               rotulo="Notificações push"
@@ -279,7 +316,7 @@ export default function Definicoes() {
 
         {/* Versão */}
         <p className="text-center text-xs text-zinc-700 mt-6">
-          HotelAI · versão 1.0.0
+          ReservaAI · versão 1.0.0
         </p>
       </div>
     </div>

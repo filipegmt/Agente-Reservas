@@ -30,12 +30,13 @@ export default function Login() {
 
       if (dados.sucesso) {
         // O login funcionou! Guardamos a chave de acesso e os dados do SQLite no navegador
-        localStorage.setItem("hotelai_auth", "true");
+        localStorage.setItem("reservaai_auth", "true");
         localStorage.setItem("user_id", dados.utilizador.id);
         localStorage.setItem("user_nome", dados.utilizador.nome);
+        localStorage.setItem("user_email", dados.utilizador.email);
 
         // Passadeira vermelha para a página do Chat
-        navegar("/chat");
+        window.location.href = "/chat";
       } else {
         // A base de dados recusou. Mostramos o erro e paramos a animação do botão
         setErro(dados.mensagem);
@@ -73,7 +74,7 @@ export default function Login() {
               <Sparkles className="w-4.5 h-4.5 text-white w-[18px] h-[18px]" />
             </div>
             <span className="text-zinc-100 font-semibold text-lg tracking-tight">
-              HotelAI
+              ReservaAI
             </span>
           </div>
         </div>
@@ -86,7 +87,7 @@ export default function Login() {
             <br />
             em ação."
           </blockquote>
-          <p className="text-zinc-600 text-sm">— Filosofia do HotelAI</p>
+          <p className="text-zinc-600 text-sm">— Filosofia do ReservaAI</p>
 
           {/* Cartões de estatísticas */}
           <div className="mt-10 grid grid-cols-2 gap-3">
@@ -116,7 +117,7 @@ export default function Login() {
             <div className="w-8 h-8 bg-indigo-500 rounded-xl flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <span className="text-zinc-100 font-semibold">HotelAI</span>
+            <span className="text-zinc-100 font-semibold">ReservaAI</span>
           </div>
 
           <div className="mb-8">

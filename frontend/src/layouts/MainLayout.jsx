@@ -1,30 +1,38 @@
 // layouts/MainLayout.jsx — Esqueleto das páginas internas
 // Contém a Sidebar fixa à esquerda e o <Outlet /> para injetar as páginas
 
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { MessageSquare, BookMarked, Settings, LogOut, Sparkles } from 'lucide-react';
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import {
+  MessageSquare,
+  BookMarked,
+  Settings,
+  LogOut,
+  Sparkles,
+} from "lucide-react";
 
 // Definição dos itens de navegação principais
 const LIGACOES_NAV = [
-  { para: '/chat',       rotulo: 'Conversa',   icone: MessageSquare },
-  { para: '/reservas',   rotulo: 'Reservas',   icone: BookMarked },
-  { para: '/definicoes', rotulo: 'Definições', icone: Settings },
+  { para: "/chat", rotulo: "Conversa", icone: MessageSquare },
+  { para: "/reservas", rotulo: "Reservas", icone: BookMarked },
+  { para: "/definicoes", rotulo: "Definições", icone: Settings },
 ];
 
 export default function MainLayout() {
   const navegar = useNavigate();
 
+  const nomeUtilizador = localStorage.getItem("user_nome") || "Utilizador";
+
+  const inicialAvatar = nomeUtilizador.charAt(0).toUpperCase();
+
   const terminarSessao = () => {
-    localStorage.removeItem('hotelai_auth');
-    navegar('/login');
+    localStorage.clear();
+    window.location.href = "/login";
   };
 
   return (
     <div className="flex h-screen bg-zinc-950 text-zinc-100 overflow-hidden">
-
       {/* ======================== SIDEBAR ======================== */}
       <aside className="w-60 bg-zinc-900 border-r border-zinc-800 flex flex-col flex-shrink-0">
-
         {/* Logo / Marca */}
         <div className="px-4 py-5 border-b border-zinc-800">
           <div className="flex items-center gap-2.5">
@@ -32,7 +40,9 @@ export default function MainLayout() {
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="text-zinc-100 font-semibold text-sm leading-none tracking-tight">HotelAI</p>
+              <p className="text-zinc-100 font-semibold text-sm leading-none tracking-tight">
+                ReservaAI
+              </p>
               <p className="text-zinc-500 text-xs mt-0.5">Agente de reservas</p>
             </div>
           </div>
@@ -40,7 +50,9 @@ export default function MainLayout() {
 
         {/* Rótulo da secção */}
         <div className="px-5 pt-5 pb-1">
-          <p className="text-zinc-600 text-xs font-semibold uppercase tracking-widest">Menu</p>
+          <p className="text-zinc-600 text-xs font-semibold uppercase tracking-widest">
+            Menu
+          </p>
         </div>
 
         {/* Navegação principal */}
@@ -52,8 +64,8 @@ export default function MainLayout() {
               className={({ isActive }) =>
                 `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${
                   isActive
-                    ? 'bg-zinc-800 text-zinc-100 font-medium shadow-sm'
-                    : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/60'
+                    ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/60"
                 }`
               }
             >
@@ -61,7 +73,9 @@ export default function MainLayout() {
                 <>
                   <Icone
                     className={`w-4 h-4 flex-shrink-0 transition-colors ${
-                      isActive ? 'text-indigo-400' : 'text-zinc-600 group-hover:text-zinc-400'
+                      isActive
+                        ? "text-indigo-400"
+                        : "text-zinc-600 group-hover:text-zinc-400"
                     }`}
                   />
                   <span className="flex-1">{rotulo}</span>
@@ -79,11 +93,17 @@ export default function MainLayout() {
           {/* Card do utilizador */}
           <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/30 to-violet-500/30 border border-indigo-500/30 flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-bold text-indigo-400">F</span>
+              <span className="text-xs font-bold text-indigo-400">
+                {inicialAvatar}
+              </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-zinc-200 truncate leading-none">Filipe</p>
-              <p className="text-xs text-zinc-600 truncate mt-0.5">Plano gratuito</p>
+              <p className="text-xs font-semibold text-zinc-200 truncate leading-none">
+                {nomeUtilizador}
+              </p>
+              <p className="text-xs text-zinc-600 truncate mt-0.5">
+                Plano gratuito
+              </p>
             </div>
           </div>
 

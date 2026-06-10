@@ -16,13 +16,14 @@ import {
 const WEBHOOK_URL = "http://localhost:5678/webhook-test/chat";
 // ──────────────────────────────────────────────────────────────────────────────
 
+const nomeUtilizador = localStorage.getItem("user_nome") || "Utilizador";
+
 // Mensagens de boas-vindas presentes ao carregar o chat
 const MENSAGENS_INICIAIS = [
   {
     id: "bv-1",
     tipo: "assistente",
-    conteudo:
-      "Olá, Filipe! Estou pronto para te ajudar a encontrar e reservar o restaurante ou hotel perfeito. O que pretendes hoje?",
+    conteudo: `Olá, ${nomeUtilizador}! Estou pronto para te ajudar a encontrar e reservar o restaurante perfeito. O que pretendes hoje?`,
     hora: new Date().toLocaleTimeString("pt-PT", {
       hour: "2-digit",
       minute: "2-digit",
@@ -243,7 +244,7 @@ export default function Chat() {
 
       setMensagens((prev) => [...prev, msgAssistente]);
     } catch (erro) {
-      console.error("[HotelAI] Erro ao contactar webhook:", erro);
+      console.error("[ReservaAI] Erro ao contactar webhook:", erro);
       setMensagens((prev) => [
         ...prev,
         {
@@ -278,7 +279,7 @@ export default function Chat() {
         <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50" />
         <div>
           <h1 className="text-sm font-semibold text-zinc-100 leading-none">
-            Agente HotelAI
+            Agente ReservaAI
           </h1>
           <p className="text-xs text-zinc-500 mt-0.5">
             Reservas inteligentes · n8n
