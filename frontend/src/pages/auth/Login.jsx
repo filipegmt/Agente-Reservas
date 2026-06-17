@@ -18,7 +18,7 @@ export default function Login() {
     setEmAutenticacao(true);
 
     try {
-      const resposta = await fetch("http://localhost:5678/webhook-test/login", {
+      const resposta = await fetch("http://localhost:5678/webhook/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

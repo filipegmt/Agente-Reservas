@@ -145,7 +145,7 @@ export default function Reservas() {
       try {
         // ATENÇÃO: Cola aqui o link do teu Webhook "API - Listar Reservas"
         const resposta = await fetch(
-          "http://localhost:5678/webhook-test/listar-reservas",
+          "http://localhost:5678/webhook/listar-reservas",
           {
             method: "POST",
             headers: {

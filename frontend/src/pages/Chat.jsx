@@ -1,5 +1,4 @@
 // pages/Chat.jsx — Área de conversa com o agente de IA (integração n8n)
-// IMPORTANTE: substitui WEBHOOK_URL pelo URL real do teu fluxo n8n
 
 import { useState, useRef, useEffect } from "react";
 import {
@@ -13,7 +12,7 @@ import {
 } from "lucide-react";
 
 // ─── Configuração do Webhook n8n ───────────────────────────────────────────────
-const WEBHOOK_URL = "http://localhost:5678/webhook-test/chat";
+const WEBHOOK_URL = "http://localhost:5678/webhook/chat";
 // ──────────────────────────────────────────────────────────────────────────────
 
 const nomeUtilizador = localStorage.getItem("user_nome") || "Utilizador";
@@ -78,75 +77,36 @@ function BalaoMensagem({ msg }) {
 
 // ─── Sub-componente: Card de Confirmação de Reserva ──────────────────────────
 function CardReserva({ reserva }) {
-  const [confirmado, setConfirmado] = useState(false);
-  const [cancelado, setCancelado] = useState(false);
-
-  if (cancelado) {
-    return (
-      <div className="mt-2 bg-zinc-800/60 border border-zinc-700 rounded-2xl p-4 w-72 text-xs text-zinc-500 text-center">
-        Reserva cancelada.
-      </div>
-    );
-  }
-
   return (
     <div className="mt-2 bg-zinc-800 border border-zinc-700/60 rounded-2xl overflow-hidden w-72 shadow-lg">
       {/* Cabeçalho do card */}
       <div className="px-4 pt-4 pb-3 border-b border-zinc-700/50">
-        <p className="text-xs text-indigo-400 font-semibold uppercase tracking-widest mb-1">
-          Confirmação de Reserva
+        <p className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold uppercase tracking-widest mb-1">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          Reserva Confirmada
         </p>
         <p className="text-zinc-100 font-semibold">{reserva.local}</p>
       </div>
 
-      {/* Detalhes */}
-      <div className="px-4 py-3 space-y-2.5">
+      {/* Detalhes do Recibo */}
+      <div className="px-4 py-4 space-y-3">
         <div className="flex items-center gap-2.5 text-xs text-zinc-400">
-          <Calendar className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+          <Calendar className="w-4 h-4 text-zinc-500 flex-shrink-0" />
           <span>
             {reserva.data} · {reserva.hora}
           </span>
         </div>
         <div className="flex items-center gap-2.5 text-xs text-zinc-400">
-          <Users className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+          <Users className="w-4 h-4 text-zinc-500 flex-shrink-0" />
           <span>
             {reserva.pessoas} {reserva.pessoas === 1 ? "pessoa" : "pessoas"}
           </span>
         </div>
         <div className="flex items-center gap-2.5 text-xs text-zinc-400">
-          <MapPin className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+          <MapPin className="w-4 h-4 text-zinc-500 flex-shrink-0" />
           <span>{reserva.morada}</span>
         </div>
       </div>
-
-      {/* Botões de ação */}
-      {!confirmado ? (
-        <div className="px-4 pb-4 flex gap-2">
-          <button
-            onClick={() => setConfirmado(true)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-stone-200 hover:bg-stone-100 text-zinc-900 font-semibold rounded-xl text-xs transition-colors"
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Confirmar
-          </button>
-          <button
-            onClick={() => setCancelado(true)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 rounded-xl text-xs transition-colors"
-          >
-            <XCircle className="w-3.5 h-3.5" />
-            Cancelar
-          </button>
-        </div>
-      ) : (
-        <div className="px-4 pb-4">
-          <div className="flex items-center justify-center gap-2 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-emerald-400 text-xs font-medium">
-              Reserva confirmada!
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -207,7 +167,7 @@ export default function Chat() {
     try {
       const userId = localStorage.getItem("user_id");
 
-      const resposta = await fetch("http://localhost:5678/webhook-test/chat", {
+      const resposta = await fetch("http://localhost:5678/webhook/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

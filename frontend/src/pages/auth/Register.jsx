@@ -45,16 +45,13 @@ export default function Register() {
     setEmCriacao(true);
 
     try {
-      const resposta = await fetch(
-        "http://localhost:5678/webhook-test/registo",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ nome, email, password }),
+      const resposta = await fetch("http://localhost:5678/webhook/registo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({ nome, email, password }),
+      });
 
       const dados = await resposta.json();
 
