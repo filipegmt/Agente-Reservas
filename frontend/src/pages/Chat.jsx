@@ -1,6 +1,7 @@
 // pages/Chat.jsx — Área de conversa com o agente de IA (integração n8n)
 
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
 import {
   Send,
   Sparkles,
@@ -50,15 +51,46 @@ function BalaoMensagem({ msg }) {
       >
         {/* Bolha de texto */}
         <div
-          className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+          className={`px-4 py-3 rounded-2xl text-sm leading-snug break-words ${
             ehUtilizador
-              ? "bg-indigo-600 text-white rounded-br-sm shadow-sm shadow-indigo-600/20"
+              ? "bg-indigo-600 text-white rounded-br-sm shadow-sm shadow-indigo-600/20 whitespace-pre-wrap"
               : msg.erro
                 ? "bg-red-900/30 text-red-300 border border-red-500/20 rounded-bl-sm"
                 : "bg-zinc-800 text-zinc-200 rounded-bl-sm"
           }`}
         >
-          {msg.conteudo}
+          {ehUtilizador ? (
+            msg.conteudo
+          ) : (
+            <ReactMarkdown
+              components={{
+                p: ({ node, ...props }) => (
+                  <p className="mb-1.5 last:mb-0" {...props} />
+                ),
+                strong: ({ node, ...props }) => (
+                  <strong
+                    className="font-semibold text-indigo-300"
+                    {...props}
+                  />
+                ),
+                ul: ({ node, ...props }) => (
+                  <ul
+                    className="list-disc pl-4 mb-1.5 last:mb-0 space-y-1.5"
+                    {...props}
+                  />
+                ),
+                ol: ({ node, ...props }) => (
+                  <ol
+                    className="list-decimal pl-4 mb-1.5 last:mb-0 space-y-1.5"
+                    {...props}
+                  />
+                ),
+                li: ({ node, ...props }) => <li className="pl-0" {...props} />,
+              }}
+            >
+              {msg.conteudo ? String(msg.conteudo) : ""}
+            </ReactMarkdown>
+          )}
         </div>
 
         {/* Card de Confirmação de Reserva */}
@@ -79,7 +111,6 @@ function BalaoMensagem({ msg }) {
 function CardReserva({ reserva }) {
   return (
     <div className="mt-2 bg-zinc-800 border border-zinc-700/60 rounded-2xl overflow-hidden w-72 shadow-lg">
-      {/* Cabeçalho do card */}
       <div className="px-4 pt-4 pb-3 border-b border-zinc-700/50">
         <p className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold uppercase tracking-widest mb-1">
           <CheckCircle2 className="w-3.5 h-3.5" />
@@ -88,7 +119,6 @@ function CardReserva({ reserva }) {
         <p className="text-zinc-100 font-semibold">{reserva.local}</p>
       </div>
 
-      {/* Detalhes do Recibo */}
       <div className="px-4 py-4 space-y-3">
         <div className="flex items-center gap-2.5 text-xs text-zinc-400">
           <Calendar className="w-4 h-4 text-zinc-500 flex-shrink-0" />
@@ -133,16 +163,51 @@ function IndicadorEscrita() {
 
 // ─── Componente principal: Chat ───────────────────────────────────────────────
 export default function Chat() {
-  const [mensagens, setMensagens] = useState(MENSAGENS_INICIAIS);
+  const [mensagens, setMensagens] = useState(() => {
+    const historicoGuardado = localStorage.getItem("reservaai_historico_chat");
+    if (historicoGuardado) {
+      return JSON.parse(historicoGuardado);
+    }
+    return MENSAGENS_INICIAIS;
+  });
   const [input, setInput] = useState("");
   const [emEnvio, setEmEnvio] = useState(false);
+  const [coordenadasUser, setCoordenadasUser] = useState({
+    lat: null,
+    lon: null,
+  });
   const fimRef = useRef(null);
   const inputRef = useRef(null);
+
+  // Solicita a localização do utilizador ao iniciar o componente
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (posicao) => {
+          setCoordenadasUser({
+            lat: posicao.coords.latitude,
+            lon: posicao.coords.longitude,
+          });
+        },
+        (erro) => {
+          console.warn(
+            "Localização não permitida ou indisponível:",
+            erro.message,
+          );
+        },
+      );
+    }
+  }, []);
 
   // Faz scroll automático para a última mensagem
   useEffect(() => {
     fimRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensagens, emEnvio]);
+
+  // Guarda o histórico no localStorage sempre que o array de mensagens sofre alterações
+  useEffect(() => {
+    localStorage.setItem("reservaai_historico_chat", JSON.stringify(mensagens));
+  }, [mensagens]);
 
   const enviarMensagem = async () => {
     const texto = input.trim();
@@ -173,6 +238,8 @@ export default function Chat() {
         body: JSON.stringify({
           mensagem: texto,
           user_id: userId,
+          lat: coordenadasUser.lat,
+          lon: coordenadasUser.lon,
           historico: mensagens.map((m) => ({
             papel: m.tipo === "utilizador" ? "user" : "assistant",
             conteudo: m.conteudo,
