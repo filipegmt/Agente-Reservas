@@ -172,6 +172,7 @@ export default function Chat() {
   });
   const [input, setInput] = useState("");
   const [emEnvio, setEmEnvio] = useState(false);
+  const [idsContexto, setIdsContexto] = useState([]);
   const [coordenadasUser, setCoordenadasUser] = useState({
     lat: null,
     lon: null,
@@ -240,6 +241,7 @@ export default function Chat() {
           user_id: userId,
           lat: coordenadasUser.lat,
           lon: coordenadasUser.lon,
+          ids_contexto: idsContexto,
           historico: mensagens.map((m) => ({
             papel: m.tipo === "utilizador" ? "user" : "assistant",
             conteudo: m.conteudo,
@@ -248,6 +250,10 @@ export default function Chat() {
       });
 
       const dados = await resposta.json();
+      // Atualiza a memória de sessão se o n8n enviar IDs de recomendações
+      if (dados?.ids_recomendados && Array.isArray(dados.ids_recomendados)) {
+        setIdsContexto(dados.ids_recomendados);
+      }
 
       // O n8n pode devolver a resposta nos campos: output, resposta, message, text
       const textoResposta =
