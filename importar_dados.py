@@ -13,7 +13,7 @@ ficheiros_cidades = [
 conexao = sqlite3.connect('app_reservas.db')
 cursor = conexao.cursor()
 
-# Adicionadas as colunas de horário lógico em Português à estrutura inicial
+# Adicionadas as colunas de horário lógico em Português e capacidade máxima à estrutura inicial
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS restaurantes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,7 +27,8 @@ cursor.execute('''
         tem_almoco INTEGER DEFAULT 0,
         tem_servico_continuo INTEGER DEFAULT 0,
         fecha_tarde INTEGER DEFAULT 0,
-        aberto_domingo INTEGER DEFAULT 0
+        aberto_domingo INTEGER DEFAULT 0,
+        capacidade_maxima INTEGER DEFAULT 20
     )
 ''')
 
@@ -37,7 +38,8 @@ novas_colunas = [
     ("tem_almoco", "INTEGER DEFAULT 0"),
     ("tem_servico_continuo", "INTEGER DEFAULT 0"),
     ("fecha_tarde", "INTEGER DEFAULT 0"),
-    ("aberto_domingo", "INTEGER DEFAULT 0")
+    ("aberto_domingo", "INTEGER DEFAULT 0"),
+    ("capacidade_maxima", "INTEGER DEFAULT 20")
 ]
 
 for coluna, tipo in novas_colunas:
@@ -120,7 +122,7 @@ for nome_ficheiro in ficheiros_cidades:
                                 elif nome_caracteristica == "Open sunday":
                                     aberto_domingo = 1
 
-                    # UPSERT: Insere ou atualiza (incluindo as novas colunas de controlo horário)
+                    # UPSERT: Insere ou atualiza (inclui as novas colunas de controlo horário)
                     cursor.execute('''
                         INSERT INTO restaurantes (
                             nome, morada, cidade, preco, avaliacao, cozinhas, imagem_url,
@@ -150,4 +152,4 @@ for nome_ficheiro in ficheiros_cidades:
 
 conexao.commit()
 conexao.close()
-print("\nProcesso concluído! A base de dados tem restaurantes atualizados com imagens e horários lógicos.")
+print("\nProcesso concluído! A base de dados tem restaurantes atualizados com imagens, horários lógicos e limite de capacidade.")

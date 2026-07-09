@@ -2,15 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import {
-  Send,
-  Sparkles,
-  Calendar,
-  Users,
-  MapPin,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
+import { Send, Sparkles, XCircle } from "lucide-react";
+import { GestorDeCards } from "../components/cards/GestorDeCards";
 
 // ─── Configuração do Webhook n8n ───────────────────────────────────────────────
 const WEBHOOK_URL = "http://localhost:5678/webhook/chat";
@@ -93,8 +86,8 @@ function BalaoMensagem({ msg }) {
           )}
         </div>
 
-        {/* Card de Confirmação de Reserva */}
-        {msg.reserva && <CardReserva reserva={msg.reserva} />}
+        {/* Injeção dinâmica de Cards via Gestor */}
+        {msg.cardPayload && <GestorDeCards payload={msg.cardPayload} />}
 
         {/* Hora */}
         <p
@@ -102,40 +95,6 @@ function BalaoMensagem({ msg }) {
         >
           {msg.hora}
         </p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Sub-componente: Card de Confirmação de Reserva ──────────────────────────
-function CardReserva({ reserva }) {
-  return (
-    <div className="mt-2 bg-zinc-800 border border-zinc-700/60 rounded-2xl overflow-hidden w-72 shadow-lg">
-      <div className="px-4 pt-4 pb-3 border-b border-zinc-700/50">
-        <p className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold uppercase tracking-widest mb-1">
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          Reserva Confirmada
-        </p>
-        <p className="text-zinc-100 font-semibold">{reserva.local}</p>
-      </div>
-
-      <div className="px-4 py-4 space-y-3">
-        <div className="flex items-center gap-2.5 text-xs text-zinc-400">
-          <Calendar className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-          <span>
-            {reserva.data} · {reserva.hora}
-          </span>
-        </div>
-        <div className="flex items-center gap-2.5 text-xs text-zinc-400">
-          <Users className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-          <span>
-            {reserva.pessoas} {reserva.pessoas === 1 ? "pessoa" : "pessoas"}
-          </span>
-        </div>
-        <div className="flex items-center gap-2.5 text-xs text-zinc-400">
-          <MapPin className="w-4 h-4 text-zinc-500 flex-shrink-0" />
-          <span>{reserva.morada}</span>
-        </div>
       </div>
     </div>
   );
@@ -272,7 +231,7 @@ export default function Chat() {
           minute: "2-digit",
         }),
         // Se o n8n devolver um objecto de reserva, inclui-o no card
-        reserva: dados?.reserva || null,
+        cardPayload: dados?.cardPayload || null,
       };
 
       setMensagens((prev) => [...prev, msgAssistente]);
