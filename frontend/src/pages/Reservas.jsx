@@ -14,6 +14,7 @@ import {
   XCircle,
   Plus,
   Loader2,
+  Star,
 } from "lucide-react";
 
 // ─── Configuração dos estados ─────────────────────────────────────────────────
@@ -39,6 +40,58 @@ const ESTADOS = {
     icone: AlertTriangle,
   },
 };
+
+// ─── Utilitários de data/hora (fuso de Portugal) ─────────────────────────────
+// Devolve a data e hora atuais no fuso de Europe/Lisbon.
+function obterAgoraLisboa() {
+  const formatador = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Lisbon",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  const partes = formatador.formatToParts(new Date());
+  const obter = (tipo) => partes.find((p) => p.type === tipo)?.value;
+
+  let hora = obter("hour");
+  if (hora === "24") hora = "00";
+
+  return `${obter("year")}-${obter("month")}-${obter("day")}T${hora}:${obter("minute")}`;
+}
+
+// Indica se a combinação data+hora de uma reserva ainda está no futuro.
+function reservaEhFutura(reserva) {
+  if (!reserva.data || !reserva.hora) return false;
+  const dataHoraReserva = `${reserva.data}T${reserva.hora}`;
+  return dataHoraReserva >= obterAgoraLisboa();
+}
+
+// Converte "2026-07-09" em "9 de jul de 2026"
+function formatarDataHumana(dataISO) {
+  if (!dataISO || dataISO === "Data a definir") return dataISO;
+  const [ano, mes, dia] = dataISO.split("-");
+  if (!ano || !mes || !dia) return dataISO;
+
+  const meses = [
+    "jan",
+    "fev",
+    "mar",
+    "abr",
+    "mai",
+    "jun",
+    "jul",
+    "ago",
+    "set",
+    "out",
+    "nov",
+    "dez",
+  ];
+  return `${parseInt(dia)} de ${meses[parseInt(mes) - 1]} de ${ano}`;
+}
 
 // ─── Sub-componente: Badge de estado ─────────────────────────────────────────
 function BadgeEstado({ estado }) {
@@ -71,8 +124,14 @@ function ModalDetalhe({ reserva, aoFechar }) {
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/90 to-transparent" />
-          <div className="absolute bottom-3 left-4">
+          <div className="absolute bottom-3 left-4 flex items-center gap-2">
             <BadgeEstado estado={reserva.estado} />
+            {reserva.avaliacao && (
+              <span className="flex items-center gap-1 bg-zinc-900/80 backdrop-blur-md px-2 py-0.5 rounded-full border border-zinc-700/50 text-amber-400 text-xs font-semibold">
+                <Star className="w-3 h-3 fill-current" />
+                {reserva.avaliacao}/5
+              </span>
+            )}
           </div>
         </div>
 
@@ -84,16 +143,16 @@ function ModalDetalhe({ reserva, aoFechar }) {
 
           <div className="mt-4 space-y-2.5">
             {[
-              { icone: Calendar, valor: reserva.data },
+              { icone: Calendar, valor: formatarDataHumana(reserva.data) },
               { icone: Clock, valor: reserva.hora },
               { icone: Users, valor: `${reserva.pessoas} pessoas` },
               { icone: MapPin, valor: reserva.morada },
             ].map(
-              ({ icone: Icone, valor }) =>
+              ({ icone: Icone, valor }, index) =>
                 valor &&
                 valor !== "empty" && (
                   <div
-                    key={valor}
+                    key={index}
                     className="flex items-center gap-2.5 text-xs text-zinc-400"
                   >
                     <Icone className="w-3.5 h-3.5 text-zinc-600 flex-shrink-0" />
@@ -126,7 +185,6 @@ function ModalDetalhe({ reserva, aoFechar }) {
 export default function Reservas() {
   const [reservaDetalhe, setReservaDetalhe] = useState(null);
 
-  // Novos estados para a ligação à base de dados
   const [proximasReservas, setProximasReservas] = useState([]);
   const [historicoReservas, setHistoricoReservas] = useState([]);
   const [aCarregar, setACarregar] = useState(true);
@@ -143,7 +201,6 @@ export default function Reservas() {
       }
 
       try {
-        // ATENÇÃO: Cola aqui o link do teu Webhook "API - Listar Reservas"
         const resposta = await fetch(
           "http://localhost:5678/webhook/listar-reservas",
           {
@@ -157,24 +214,36 @@ export default function Reservas() {
 
         const dados = await resposta.json();
 
-        // Garante que é uma lista antes de processar
         if (Array.isArray(dados)) {
-          // Mapeamento: Traduz as colunas do SQLite para as variáveis do Frontend
-          const dadosMapeados = dados.map((res) => ({
-            id: res.id,
-            restaurante: res.nome_restaurante || "Restaurante Desconhecido",
-            tipo: "Restaurante",
-            data: res.data || "Data a definir",
-            hora: res.hora || "Hora a definir",
-            pessoas: res.num_pessoas || 0,
-            estado: res.status || "pendente",
-            morada: res.morada || "Morada não disponível",
-            imagem:
-              res.imagem_url ||
-              "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80",
-          }));
+          const dadosMapeados = dados.map((res) => {
+            const ehFutura = reservaEhFutura({
+              data: res.data,
+              hora: res.hora,
+            });
 
-          // Separa as reservas confirmadas das restantes
+            // Interceta a reserva e converte para "concluída" se já tiver passado
+            let estadoFinal = res.status || "pendente";
+            if (estadoFinal === "confirmada" && !ehFutura) {
+              estadoFinal = "concluída";
+            }
+
+            return {
+              id: res.id,
+              restaurante: res.nome_restaurante || "Restaurante Desconhecido",
+              tipo: "Restaurante",
+              data: res.data || "Data a definir",
+              hora: res.hora || "Hora a definir",
+              pessoas: res.num_pessoas || 0,
+              estado: estadoFinal,
+              morada: res.morada || "Morada não disponível",
+              avaliacao: res.nota || null,
+              imagem:
+                res.imagem_url ||
+                "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80",
+            };
+          });
+
+          // Filtra consoante os novos estados
           setProximasReservas(
             dadosMapeados.filter((r) => r.estado === "confirmada"),
           );
@@ -217,14 +286,12 @@ export default function Reservas() {
             </button>
           </div>
 
-          {/* Estado de Erro */}
           {erro && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
               {erro}
             </div>
           )}
 
-          {/* Ecrã de Carregamento */}
           {aCarregar ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="w-8 h-8 text-zinc-500 animate-spin mb-4" />
@@ -288,7 +355,7 @@ export default function Reservas() {
                           <div className="flex flex-wrap gap-x-5 gap-y-1.5 mt-3">
                             <div className="flex items-center gap-1.5 text-zinc-500 text-xs">
                               <Calendar className="w-3.5 h-3.5" />
-                              <span>{reserva.data}</span>
+                              <span>{formatarDataHumana(reserva.data)}</span>
                             </div>
                             <div className="flex items-center gap-1.5 text-zinc-500 text-xs">
                               <Clock className="w-3.5 h-3.5" />
@@ -330,9 +397,9 @@ export default function Reservas() {
                       <button
                         key={reserva.id}
                         onClick={() => setReservaDetalhe(reserva)}
-                        className="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-zinc-700 transition-all duration-200 group text-left"
+                        className="bg-zinc-900 rounded-xl overflow-hidden border border-zinc-800 hover:border-zinc-700 transition-all duration-200 group text-left flex flex-col"
                       >
-                        <div className="h-20 overflow-hidden relative">
+                        <div className="h-20 overflow-hidden relative flex-shrink-0">
                           <img
                             src={reserva.imagem}
                             alt={reserva.restaurante}
@@ -341,15 +408,27 @@ export default function Reservas() {
                           <div className="absolute inset-0 bg-zinc-900/20" />
                         </div>
 
-                        <div className="p-2.5">
-                          <p className="text-zinc-300 text-xs font-medium truncate leading-tight">
-                            {reserva.restaurante}
-                          </p>
-                          <p className="text-zinc-600 text-xs mt-0.5">
-                            {reserva.data}
-                          </p>
-                          <div className="mt-1.5">
+                        <div className="p-2.5 flex-1 flex flex-col justify-between">
+                          <div>
+                            <p className="text-zinc-300 text-xs font-medium truncate leading-tight">
+                              {reserva.restaurante}
+                            </p>
+                            <p className="text-zinc-500 text-[11px] mt-0.5">
+                              {formatarDataHumana(reserva.data)}
+                            </p>
+                          </div>
+
+                          <div className="mt-2 flex items-center justify-between">
                             <BadgeEstado estado={reserva.estado} />
+                            {reserva.avaliacao &&
+                              reserva.estado === "concluída" && (
+                                <div className="flex items-center gap-0.5 text-amber-400">
+                                  <Star className="w-3 h-3 fill-current" />
+                                  <span className="text-[10px] font-bold">
+                                    {reserva.avaliacao}
+                                  </span>
+                                </div>
+                              )}
                           </div>
                         </div>
                       </button>
